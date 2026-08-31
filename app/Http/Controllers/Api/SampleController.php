@@ -59,8 +59,9 @@ class SampleController extends Controller
         $position = $sample->containerPosition;
 
         return [
-            'id' => $sample->unique_ref,
-            'unique_ref' => $sample->unique_ref,
+            'id' => $sample->fullUniqueRef(),
+            'unique_ref' => $sample->fullUniqueRef(),
+            'plate_id' => $sample->unique_ref,
             'description' => $sample->description,
             'dimensions_mm' => [
                 'width' => $sample->width_mm,

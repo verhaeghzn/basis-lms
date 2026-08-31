@@ -80,9 +80,7 @@ class TimelineWidget extends Widget
     {
         // Special handling for Sample to show full reference
         if ($subject instanceof \App\Models\Sample) {
-            $sourceRef = $subject->sourceMaterial?->unique_ref ?? 'Unknown';
-            $sampleRef = $subject->unique_ref ?? 'Unknown';
-            return "{$sourceRef}-{$sampleRef}";
+            return $subject->fullUniqueRef();
         }
 
         if (method_exists($subject, 'unique_ref') && $subject->unique_ref) {

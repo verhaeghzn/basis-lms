@@ -69,31 +69,22 @@ class SampleResource extends Resource
 
                         return $material ? $material->unique_ref.'-' : '';
                     })
-                    ->helperText(function (Get $get): string {
+                    ->helperText('Enter only the plate suffix. The material prefix is fixed beside the field.')
+                    ->live(onBlur: true),
+                Forms\Components\Placeholder::make('full_unique_id')
+                    ->label('Full unique ID')
+                    ->content(function (Get $get): string {
                         $material = SourceMaterial::query()->find($get('source_material_id'));
                         $suffix = trim((string) $get('unique_ref'));
 
                         if (! $material || $suffix === '') {
-                            return 'Suffix only — the source-material prefix is shown left of the field.';
+                            return '—';
                         }
 
-                        return 'Full unique ID: '.$material->unique_ref.'-'.$suffix;
+                        return $material->unique_ref.'-'.$suffix;
                     })
-                    ->live(onBlur: true)
-                    ->suffixAction(
-                        Action::make('copyFullUniqueId')
-                            ->icon('heroicon-o-clipboard-document')
-                            ->tooltip('Copy full unique ID')
-                            ->alpineClickHandler(function (Get $get): string {
-                                $material = SourceMaterial::query()->find($get('source_material_id'));
-                                $suffix = trim((string) $get('unique_ref'));
-                                $full = ($material && $suffix !== '')
-                                    ? $material->unique_ref.'-'.$suffix
-                                    : '';
-
-                                return "window.navigator.clipboard.writeText(".json_encode($full).")";
-                            })
-                    ),
+                    ->copyable()
+                    ->copyMessage('Full unique ID copied'),
                 Select::make('container_id')
                     ->relationship('container', 'name')
                     ->nullable()

@@ -26,12 +26,16 @@ final class SampleInfolistSchema
                     'md' => 2,
                 ])
                 ->schema([
-                    TextEntry::make('unique_ref')
+                    TextEntry::make('full_unique_ref')
                         ->label('Unique Reference')
+                        ->state(fn (Sample $record): string => $record->fullUniqueRef())
+                        ->copyable()
+                        ->copyMessage('Full unique ID copied')
                         ->size(TextSize::Large)
                         ->weight('bold'),
                     TextEntry::make('sourceMaterial.unique_ref')
                         ->label('Source Material Reference')
+                        ->copyable()
                         ->size(TextSize::Large),
                     TextEntry::make('description')
                         ->markdown()

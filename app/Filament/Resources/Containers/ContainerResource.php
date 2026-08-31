@@ -134,8 +134,12 @@ class ContainerResource extends Resource
                                         // Get samples that are not assigned to any container position
                                         $assignedSampleIds = ContainerPosition::whereNotNull('sample_id')->pluck('sample_id');
                                         return Sample::query()
+                                            ->with('sourceMaterial')
                                             ->whereNotIn('id', $assignedSampleIds)
-                                            ->pluck('unique_ref', 'id');
+                                            ->get()
+                                            ->mapWithKeys(fn (Sample $sample): array => [
+                                                $sample->id => $sample->fullUniqueRef(),
+                                            ]);
                                     })
                                     ->searchable()
                                     ->placeholder('Select Sample')
@@ -199,8 +203,12 @@ class ContainerResource extends Resource
                                                 ->where('id', '!=', $position?->id ?? 0)
                                                 ->pluck('sample_id');
                                             return Sample::query()
+                                                ->with('sourceMaterial')
                                                 ->whereNotIn('id', $assignedSampleIds)
-                                                ->pluck('unique_ref', 'id');
+                                                ->get()
+                                                ->mapWithKeys(fn (Sample $sample): array => [
+                                                    $sample->id => $sample->fullUniqueRef(),
+                                                ]);
                                         })
                                         ->searchable()
                                         ->placeholder('Select Sample')

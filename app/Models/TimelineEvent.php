@@ -64,9 +64,8 @@ class TimelineEvent extends Model
                 return "created source material {$name}";
             
             case Sample::class:
-                $ref = $model->unique_ref ?? 'Unknown';
-                $sourceRef = $model->sourceMaterial?->unique_ref ?? 'Unknown';
-                return "created sample {$sourceRef}-{$ref}";
+                $ref = $model->fullUniqueRef();
+                return "created sample {$ref}";
             
             case Container::class:
                 $name = $model->name ?? 'Unknown';

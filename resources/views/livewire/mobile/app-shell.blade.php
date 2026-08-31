@@ -119,7 +119,7 @@
                                         <img src="{{ $photoUrl }}" alt="{{ $sample->unique_ref }}" class="h-full w-full object-cover" />
                                     </div>
                                     <div class="flex-1 space-y-1">
-                                        <p class="text-sm font-semibold text-slate-800">Sample {{ $sample->unique_ref }}</p>
+                                        <p class="text-sm font-semibold text-slate-800">Sample {{ $sample->fullUniqueRef() }}</p>
                                         <p class="text-xs uppercase tracking-wide text-primary-600">{{ optional($sample->sourceMaterial)->unique_ref }}</p>
                                         <p class="text-xs text-slate-500">{{ Str::limit($sample->description, 80) }}</p>
                                     </div>

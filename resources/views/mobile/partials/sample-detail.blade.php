@@ -16,7 +16,7 @@
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <p class="text-xs uppercase tracking-widest text-primary-500/80">Sample</p>
-                <h2 class="mt-1 text-2xl font-semibold text-slate-900">Sample {{ $sample->unique_ref }}</h2>
+                <h2 class="mt-1 text-2xl font-semibold text-slate-900">Sample {{ $sample->fullUniqueRef() }}</h2>
                 <p class="text-sm text-slate-600">Source material: {{ optional($sample->sourceMaterial)->name }} ({{ optional($sample->sourceMaterial)->unique_ref }})</p>
             </div>
             <div class="text-right text-xs text-slate-400">
@@ -134,7 +134,7 @@
                                 <img src="{{ $siblingUrl }}" alt="Sample {{ $sibling->unique_ref }}" class="h-full w-full object-cover" />
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-semibold text-slate-800">Sample {{ $sibling->unique_ref }}</p>
+                                <p class="text-sm font-semibold text-slate-800">Sample {{ $sibling->fullUniqueRef() }}</p>
                                 <p class="text-xs text-slate-500">{{ Str::limit($sibling->description, 90) }}</p>
                             </div>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4 text-primary-500">

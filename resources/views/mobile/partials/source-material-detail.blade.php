@@ -115,7 +115,7 @@
                                 <img src="{{ $sampleUrl }}" alt="Sample {{ $sample->unique_ref }}" class="h-full w-full object-cover" />
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-semibold text-slate-800">Sample {{ $sample->unique_ref }}</p>
+                                <p class="text-sm font-semibold text-slate-800">Sample {{ $sample->fullUniqueRef() }}</p>
                                 <p class="text-xs text-slate-500">{{ Str::limit($sample->description, 90) }}</p>
                             </div>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4 text-primary-500">

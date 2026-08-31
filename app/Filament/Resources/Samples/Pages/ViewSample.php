@@ -22,7 +22,7 @@ class ViewSample extends ViewRecord
 
     public function getTitle(): string
     {
-        return $this->record->unique_ref;
+        return $this->record->fullUniqueRef();
     }
 
     protected function getInfolistSchema(): array

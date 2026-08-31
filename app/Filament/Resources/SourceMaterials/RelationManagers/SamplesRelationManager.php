@@ -33,8 +33,11 @@ class SamplesRelationManager extends RelationManager
         return $schema
             ->components([
                 TextInput::make('unique_ref')
+                    ->label('Plate ID')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->prefix(fn (): string => ($this->getOwnerRecord()->unique_ref ?? '').'-')
+                    ->helperText(fn (): string => 'Full unique ID: '.($this->getOwnerRecord()->unique_ref ?? '').'-…'),
             ]);
     }
 
@@ -44,7 +47,10 @@ class SamplesRelationManager extends RelationManager
             ->recordTitleAttribute('unique_ref')
             ->columns([
                 TextColumn::make('unique_ref')
-                ->formatStateUsing(fn (Sample $record) => $record->sourceMaterial->unique_ref . '-' . $record->unique_ref)
+                    ->label('Unique ID')
+                    ->formatStateUsing(fn (Sample $record): string => $record->fullUniqueRef())
+                    ->copyable()
+                    ->copyMessage('Full unique ID copied')
                     ->searchable(),
             ])
             ->filters([

@@ -58,7 +58,7 @@ class StarredItemsWidget extends Widget
                     'id' => $item->id,
                     'type' => 'sample',
                     'model' => $item,
-                    'reference' => ($item->sourceMaterial?->unique_ref ?? 'Unknown') . '-' . $item->unique_ref,
+                    'reference' => $item->fullUniqueRef(),
                     'name' => $item->sourceMaterial?->name ?? 'Unknown',
                     'grade' => $item->sourceMaterial?->grade ?? 'No Grade',
                     'supplier_identifier' => $item->sourceMaterial?->supplier_identifier,
