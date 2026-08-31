@@ -42,6 +42,25 @@ class Sample extends Model
         return $this->belongsTo(SourceMaterial::class);
     }
 
+    /**
+     * Full unique ID: {source material ref}-{sample ref}, e.g. 25-164-07-CS.
+     */
+    public function fullUniqueRef(): string
+    {
+        $prefix = $this->sourceMaterial?->unique_ref;
+
+        if (filled($prefix)) {
+            return $prefix.'-'.$this->unique_ref;
+        }
+
+        return (string) $this->unique_ref;
+    }
+
+    public function getFullUniqueRefAttribute(): string
+    {
+        return $this->fullUniqueRef();
+    }
+
     public function container()
     {
         return $this->belongsTo(Container::class);

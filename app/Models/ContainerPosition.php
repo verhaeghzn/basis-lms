@@ -27,7 +27,7 @@ class ContainerPosition extends Model
     public function getDisplayNameAttribute()
     {
         if ($this->sample) {
-            return $this->sample->unique_ref;
+            return $this->sample->fullUniqueRef();
         }
         
         return $this->custom_name ?? "Position {$this->compartment_x},{$this->compartment_y}";

@@ -130,7 +130,7 @@ class Container extends Model
             ->where('compartment_y', $y)
             ->first();
         
-        return $sample ? $sample->unique_ref : null;
+        return $sample ? $sample->fullUniqueRef() : null;
     }
 
     /**

@@ -21,6 +21,7 @@ use App\Filament\Resources\SampleResource\Pages;
 use App\Filament\Resources\SampleResource\RelationManagers;
 use App\Filament\Resources\Samples\SampleInfolistSchema;
 use App\Models\Sample;
+use App\Models\SourceMaterial;
 use App\Models\ProcessingStepTemplate;
 use Filament\Forms;
 use Filament\Resources\Resource;
@@ -35,8 +36,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Infolists;
 
 class SampleResource extends Resource
@@ -51,16 +51,53 @@ class SampleResource extends Resource
     {
         return $schema
             ->components([
-                TextInput::make('unique_ref')
+                Select::make('source_material_id')
+                    ->relationship('sourceMaterial', 'unique_ref')
+                    ->getOptionLabelFromRecordUsing(
+                        fn (SourceMaterial $record): string => "{$record->unique_ref} — {$record->name}"
+                    )
+                    ->searchable()
+                    ->preload()
                     ->required()
-                    ->maxLength(255),
+                    ->live(),
+                TextInput::make('unique_ref')
+                    ->label('Plate ID')
+                    ->required()
+                    ->maxLength(255)
+                    ->prefix(function (Get $get): string {
+                        $material = SourceMaterial::query()->find($get('source_material_id'));
+
+                        return $material ? $material->unique_ref.'-' : '';
+                    })
+                    ->helperText(function (Get $get): string {
+                        $material = SourceMaterial::query()->find($get('source_material_id'));
+                        $suffix = trim((string) $get('unique_ref'));
+
+                        if (! $material || $suffix === '') {
+                            return 'Suffix only — the source-material prefix is shown left of the field.';
+                        }
+
+                        return 'Full unique ID: '.$material->unique_ref.'-'.$suffix;
+                    })
+                    ->live(onBlur: true)
+                    ->suffixAction(
+                        Action::make('copyFullUniqueId')
+                            ->icon('heroicon-o-clipboard-document')
+                            ->tooltip('Copy full unique ID')
+                            ->alpineClickHandler(function (Get $get): string {
+                                $material = SourceMaterial::query()->find($get('source_material_id'));
+                                $suffix = trim((string) $get('unique_ref'));
+                                $full = ($material && $suffix !== '')
+                                    ? $material->unique_ref.'-'.$suffix
+                                    : '';
+
+                                return "window.navigator.clipboard.writeText(".json_encode($full).")";
+                            })
+                    ),
                 Select::make('container_id')
                     ->relationship('container', 'name')
                     ->nullable()
                     ->label('Container'),
-                Select::make('source_material_id')
-                    ->relationship('sourceMaterial', 'unique_ref')
-                    ->required(),
                 Section::make('Technical Information')
                     ->collapsed()
                     ->columns(2)
@@ -148,8 +185,18 @@ class SampleResource extends Resource
                         $record->setAttribute('is_starred', ! $alreadyStarred);
                     }),
                 TextColumn::make('unique_ref')
-                    ->formatStateUsing(fn(Sample $record) => $record->sourceMaterial->unique_ref . '-' . $record->unique_ref)
-                    ->searchable(),
+                    ->label('Unique ID')
+                    ->formatStateUsing(fn (Sample $record): string => $record->fullUniqueRef())
+                    ->copyable()
+                    ->copyMessage('Full unique ID copied')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        $like = '%'.$search.'%';
+
+                        return $query->where(function (Builder $inner) use ($like): void {
+                            $inner->where('unique_ref', 'like', $like)
+                                ->orWhereHas('sourceMaterial', fn (Builder $material) => $material->where('unique_ref', 'like', $like));
+                        });
+                    }),
                 TextColumn::make('sourceMaterial.name')
                     ->searchable(),
                 TextColumn::make('width_mm')
