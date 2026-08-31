@@ -2,47 +2,39 @@
 
 namespace App\Filament\Resources\Samples;
 
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\KeyValue;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\ViewAction;
-use Illuminate\Support\Facades\Auth;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use App\Filament\Resources\Samples\Pages\ListSamples;
 use App\Filament\Resources\Samples\Pages\CreateSample;
 use App\Filament\Resources\Samples\Pages\EditSample;
+use App\Filament\Resources\Samples\Pages\ListSamples;
 use App\Filament\Resources\Samples\Pages\ViewSample;
-use App\Filament\Resources\SampleResource\Pages;
-use App\Filament\Resources\SampleResource\RelationManagers;
-use App\Filament\Resources\Samples\SampleInfolistSchema;
 use App\Models\Sample;
 use App\Models\SourceMaterial;
-use App\Models\ProcessingStepTemplate;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Grouping\Group;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Infolists;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Grouping\Group;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class SampleResource extends Resource
 {
     protected static ?string $model = Sample::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-puzzle-piece';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-puzzle-piece';
 
     protected static ?int $navigationSort = 2;
 
@@ -102,6 +94,19 @@ class SampleResource extends Resource
                             ->numeric(),
                         KeyValue::make('properties'),
                     ]),
+                Section::make('Semphony access')
+                    ->description('Choose the BASIS users who may attach this sample to a Semphony session. BASIS administrators always have access.')
+                    ->visible(fn (): bool => Auth::user()?->isAdmin() ?? false)
+                    ->schema([
+                        Select::make('semphonyAuthorizedUsers')
+                            ->label('Authorized BASIS users')
+                            ->relationship('semphonyAuthorizedUsers', 'email')
+                            ->getOptionLabelFromRecordUsing(fn (\App\Models\User $record): string => "{$record->name} — {$record->email}")
+                            ->multiple()
+                            ->searchable(['name', 'email'])
+                            ->preload()
+                            ->helperText('Only these users can find or verify this sample through Semphony.'),
+                    ]),
                 Section::make('Processing')
                     ->collapsed()
                     ->schema([
@@ -120,7 +125,7 @@ class SampleResource extends Resource
 
                                 Textarea::make('content')
                                     ->label('Text')
-                                    ->rows(3)
+                                    ->rows(3),
 
                             ])
                             ->columns(2)
@@ -128,8 +133,8 @@ class SampleResource extends Resource
                             ->addActionLabel('Add Processing Step')
                             ->reorderable()
                             ->collapsible()
-                            ->itemLabel(fn(array $state): ?string => $state['name'] ?? 'Processing Step')
-                    ])
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? 'Processing Step'),
+                    ]),
             ]);
     }
 
@@ -190,8 +195,8 @@ class SampleResource extends Resource
                 TextColumn::make('sourceMaterial.name')
                     ->searchable(),
                 TextColumn::make('width_mm')
-                ->label('Dimensions (mm)')
-                ->formatStateUsing(fn(Sample $record) => $record->width_mm . ' x ' . $record->height_mm . ' x ' . $record->thickness_mm)
+                    ->label('Dimensions (mm)')
+                    ->formatStateUsing(fn (Sample $record) => $record->width_mm.' x '.$record->height_mm.' x '.$record->thickness_mm),
             ])
             ->filters([
                 //
@@ -205,31 +210,30 @@ class SampleResource extends Resource
             ->recordAction('view-slideover')
             ->recordActions([
                 \Filament\Actions\Action::make('view-slideover')
-                ->label('View')
-                ->hiddenLabel()
-                ->icon('heroicon-o-eye')
-                ->color('info')
-                ->button()
-                ->schema(SampleInfolistSchema::schema(collapsed: false))
-                ->slideOver()
-                ,
+                    ->label('View')
+                    ->hiddenLabel()
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->button()
+                    ->schema(SampleInfolistSchema::schema(collapsed: false))
+                    ->slideOver(),
                 ViewAction::make()
-                ->hiddenLabel()
-                ->color('success')
-                ->button()
-                ->icon('heroicon-o-arrow-top-right-on-square'),
+                    ->hiddenLabel()
+                    ->color('success')
+                    ->button()
+                    ->icon('heroicon-o-arrow-top-right-on-square'),
                 EditAction::make()
-                ->hiddenLabel()
-                ->button()
-                ->icon('heroicon-o-pencil'),
+                    ->hiddenLabel()
+                    ->button()
+                    ->icon('heroicon-o-pencil'),
                 DeleteAction::make()
-                ->hiddenLabel()
-                ->button()
-                ->icon('heroicon-o-trash')
-                ->requiresConfirmation()
-                ->modalHeading('Delete Sample')
-                ->modalDescription('Are you sure you want to delete this sample? This action cannot be undone.')
-                ->modalSubmitActionLabel('Yes, delete it'),
+                    ->hiddenLabel()
+                    ->button()
+                    ->icon('heroicon-o-trash')
+                    ->requiresConfirmation()
+                    ->modalHeading('Delete Sample')
+                    ->modalDescription('Are you sure you want to delete this sample? This action cannot be undone.')
+                    ->modalSubmitActionLabel('Yes, delete it'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -3,18 +3,21 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Filament\Panel;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Passport\Contracts\OAuthenticatable;
+use Laravel\Passport\HasApiTokens;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, OAuthenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -53,13 +56,23 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        if ($this->isAdmin()) {
-            return true;
-        }
+        return $this->canUseSemphony();
+    }
 
-        return str_ends_with($this->email, '@tue.nl')
-            || str_ends_with($this->email, '@rozenlicht.nl')
-            || str_ends_with($this->email, '@student.tue.nl');
+    public function canUseSemphony(): bool
+    {
+        $email = Str::lower($this->email);
+
+        return $this->isAdmin()
+            || str_ends_with($email, '@tue.nl')
+            || str_ends_with($email, '@rozenlicht.nl')
+            || str_ends_with($email, '@student.tue.nl');
+    }
+
+    public function canAttachSemphonySample(Sample $sample): bool
+    {
+        return $this->canUseSemphony()
+            && ($this->isAdmin() || $this->semphonyAuthorizedSamples()->whereKey($sample->getKey())->exists());
     }
 
     public function starredSourceMaterials(): BelongsToMany
@@ -70,6 +83,11 @@ class User extends Authenticatable implements FilamentUser
     public function starredSamples(): BelongsToMany
     {
         return $this->belongsToMany(Sample::class, 'sample_user')->withTimestamps();
+    }
+
+    public function semphonyAuthorizedSamples(): BelongsToMany
+    {
+        return $this->belongsToMany(Sample::class, 'sample_semphony_user')->withTimestamps();
     }
 
     /**

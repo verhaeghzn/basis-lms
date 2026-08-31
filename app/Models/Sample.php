@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\ProcessingStep;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -145,6 +143,11 @@ class Sample extends Model
     public function starredByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'sample_user')->withTimestamps();
+    }
+
+    public function semphonyAuthorizedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'sample_semphony_user')->withTimestamps();
     }
 
     public function isStarredBy(?User $user): bool

@@ -35,8 +35,4 @@ return [
         ],
     ],
 
-    'semphony' => [
-        'api_token' => env('SEMPHONY_API_TOKEN'),
-    ],
-
 ];
