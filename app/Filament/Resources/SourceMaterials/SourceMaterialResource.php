@@ -175,7 +175,8 @@ class SourceMaterialResource extends Resource
                     $query->orderByDesc('is_starred');
                 }
 
-                $query->orderBy('name');
+                // Grouping is sequential: same grades must be contiguous in the result set.
+                $query->orderBy('grade')->orderBy('name');
             })
             ->paginationPageOptions([25, 50, 100, 250, 500])
             ->defaultPaginationPageOption(100)
