@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
@@ -34,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->domain(config('app.basis_domain'))
             ->id('admin')
             ->path('app')
-            ->login()
+            ->login(Login::class)
             ->darkMode(false)
             ->brandLogo(asset('images/logo.png'))
             ->brandLogoHeight('40px')

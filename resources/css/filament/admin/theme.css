@@ -1,4 +1,202 @@
+@import url('https://fonts.bunny.net/css?family=syne:600,700,800|dm-sans:400,500,600,700');
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
+
+/* ---- BASIS login composition ---- */
+
+.basis-login-body {
+    --basis-ink: #0b1f2a;
+    --basis-steel: #3d5563;
+    --basis-mist: #e8eef2;
+    --basis-panel: #f4f7f9;
+    --basis-accent: #04688f;
+    --basis-accent-deep: #03506e;
+    --font-family: 'DM Sans', ui-sans-serif, sans-serif !important;
+}
+
+.basis-login {
+    display: grid;
+    min-height: 100dvh;
+    width: 100%;
+    background: var(--basis-panel);
+}
+
+.basis-login__hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 42vh;
+    background: #12181c;
+}
+
+.basis-login__hero-media {
+    position: absolute;
+    inset: 0;
+}
+
+.basis-login__hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+    transform: scale(1.08);
+    animation: basis-hero-drift 18s ease-in-out infinite alternate;
+    filter: saturate(1.05) contrast(1.04);
+}
+
+.basis-login__hero-veil {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(8, 18, 24, 0.15) 0%, rgba(8, 18, 24, 0.55) 55%, rgba(8, 18, 24, 0.82) 100%),
+        radial-gradient(ellipse at 30% 20%, rgba(4, 104, 143, 0.22), transparent 55%);
+    pointer-events: none;
+}
+
+.basis-login__hero-copy {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    padding: 1.75rem 1.5rem 2rem;
+    color: #f7fbfd;
+}
+
+.basis-login__eyebrow {
+    margin: 0;
+    font-family: Syne, ui-sans-serif, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(247, 251, 253, 0.72);
+    animation: basis-fade-up 0.7s ease-out both;
+}
+
+.basis-login__tagline {
+    margin: 0.65rem 0 0;
+    max-width: 18rem;
+    font-family: Syne, ui-sans-serif, sans-serif;
+    font-size: clamp(1.35rem, 3vw, 1.85rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    animation: basis-fade-up 0.85s ease-out 0.08s both;
+}
+
+.basis-login__panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.basis-login .fi-simple-layout {
+    width: 100%;
+    background: transparent;
+}
+
+.basis-login .fi-simple-main-ctn {
+    min-height: auto;
+    padding: 0;
+}
+
+.basis-login__card {
+    width: min(100%, 26rem) !important;
+    margin: 0 auto;
+    padding: 1.75rem 1.5rem !important;
+    border: 1px solid rgba(11, 31, 42, 0.08);
+    border-radius: 1.25rem;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.8) inset,
+        0 18px 40px -24px rgba(11, 31, 42, 0.35);
+    backdrop-filter: blur(10px);
+    animation: basis-fade-up 0.75s ease-out 0.12s both;
+}
+
+.basis-login .fi-logo {
+    height: 2.75rem;
+}
+
+.basis-login .fi-simple-header-heading {
+    font-family: Syne, ui-sans-serif, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--basis-ink);
+}
+
+.basis-login .fi-simple-header-subheading {
+    color: var(--basis-steel);
+}
+
+.basis-login .fi-btn-primary {
+    background: var(--basis-accent) !important;
+}
+
+.basis-login .fi-btn-primary:hover {
+    background: var(--basis-accent-deep) !important;
+}
+
+@media (min-width: 960px) {
+    .basis-login {
+        grid-template-columns: minmax(0, 1.15fr) minmax(24rem, 0.85fr);
+    }
+
+    .basis-login__hero {
+        min-height: 100dvh;
+    }
+
+    .basis-login__hero-copy {
+        padding: 2.5rem 2.75rem 3rem;
+    }
+
+    .basis-login__tagline {
+        max-width: 22rem;
+    }
+
+    .basis-login__panel {
+        padding: 2.5rem;
+    }
+
+    .basis-login__card {
+        padding: 2.25rem 2rem !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .basis-login__hero-image,
+    .basis-login__eyebrow,
+    .basis-login__tagline,
+    .basis-login__card {
+        animation: none;
+    }
+
+    .basis-login__hero-image {
+        transform: none;
+    }
+}
+
+@keyframes basis-hero-drift {
+    from {
+        transform: scale(1.08) translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: scale(1.14) translate3d(-1.5%, -1%, 0);
+    }
+}
+
+@keyframes basis-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
