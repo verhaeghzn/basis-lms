@@ -84,7 +84,7 @@
             <div class="mobile-login__veil"></div>
             <div class="mobile-login__copy">
                 <p class="mobile-login__eyebrow">Basis Mobile</p>
-                <p class="mobile-login__tagline">Research materials on the go.</p>
+                <p class="mobile-login__tagline">All materials properly indexed.</p>
             </div>
         </aside>
 

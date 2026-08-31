@@ -14,12 +14,17 @@
     --basis-accent: #04688f;
     --basis-accent-deep: #03506e;
     --font-family: 'DM Sans', ui-sans-serif, sans-serif !important;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
 }
 
 .basis-login {
     display: grid;
-    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
     width: 100%;
+    overflow: hidden;
     background: var(--basis-panel);
 }
 
@@ -77,11 +82,11 @@
 
 .basis-login__tagline {
     margin: 0.65rem 0 0;
-    max-width: 18rem;
+    max-width: 22rem;
     font-family: Syne, ui-sans-serif, sans-serif;
-    font-size: clamp(1.35rem, 3vw, 1.85rem);
+    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.25;
     letter-spacing: -0.02em;
     animation: basis-fade-up 0.85s ease-out 0.08s both;
 }
@@ -95,11 +100,14 @@
 
 .basis-login .fi-simple-layout {
     width: 100%;
+    min-height: 0 !important;
+    height: auto;
     background: transparent;
 }
 
 .basis-login .fi-simple-main-ctn {
-    min-height: auto;
+    min-height: 0 !important;
+    height: auto;
     padding: 0;
 }
 
@@ -146,7 +154,15 @@
     }
 
     .basis-login__hero {
-        min-height: 100dvh;
+        min-height: 0;
+        height: 100dvh;
+    }
+
+    .basis-login__panel {
+        min-height: 0;
+        height: 100dvh;
+        overflow: hidden;
+        padding: 2.5rem;
     }
 
     .basis-login__hero-copy {
@@ -155,10 +171,6 @@
 
     .basis-login__tagline {
         max-width: 22rem;
-    }
-
-    .basis-login__panel {
-        padding: 2.5rem;
     }
 
     .basis-login__card {

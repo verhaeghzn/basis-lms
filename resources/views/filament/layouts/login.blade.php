@@ -25,7 +25,7 @@
             <div class="basis-login__hero-copy">
                 <p class="basis-login__eyebrow">Multiscale Lab</p>
                 <p class="basis-login__tagline">
-                    Sample stewardship from source material to result.
+                    All materials properly indexed.
                 </p>
             </div>
         </aside>

@@ -24,6 +24,6 @@ class Login extends BaseLogin
             return parent::getSubheading();
         }
 
-        return 'Track source materials, samples, and lab results.';
+        return null;
     }
 }
