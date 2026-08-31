@@ -19,7 +19,7 @@ use App\Filament\Resources\Samples\Pages\EditSample;
 use App\Filament\Resources\Samples\Pages\ViewSample;
 use App\Filament\Resources\SampleResource\Pages;
 use App\Filament\Resources\SampleResource\RelationManagers;
-use App\Filament\Resources\SampleResource\SampleInfolistSchema\SampleInfolistSchema;
+use App\Filament\Resources\Samples\SampleInfolistSchema;
 use App\Models\Sample;
 use App\Models\ProcessingStepTemplate;
 use Filament\Forms;

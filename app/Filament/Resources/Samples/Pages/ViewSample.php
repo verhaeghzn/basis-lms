@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Samples\Pages;
 
 use Filament\Actions\EditAction;
-use App\Filament\Resources\SampleResource\SampleInfolistSchema\SampleInfolistSchema;
+use App\Filament\Resources\Samples\SampleInfolistSchema;
 use App\Filament\Resources\Samples\SampleResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;

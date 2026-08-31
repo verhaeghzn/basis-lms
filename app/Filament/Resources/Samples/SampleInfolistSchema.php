@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\SampleResource\SampleInfolistSchema;
+namespace App\Filament\Resources\Samples;
 
 use App\Models\Sample;
 use Filament\Schemas\Components\Section;
