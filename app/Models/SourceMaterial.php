@@ -56,28 +56,28 @@ class SourceMaterial extends Model
     {
         // if value is array with one string element, convert it to a JSON string
         if (is_array($value) && count($value) === 1 && is_string($value[0])) {
-            if(json_decode($value[0], true) !== null) {
-                $this->attributes['composition'] = json_decode($value[0], true);
-            } else {
-                $this->attributes['composition'] = $value;
+            if (json_decode($value[0], true) !== null) {
+                $value = json_decode($value[0], true);
             }
-        } else {
-            $this->attributes['composition'] = $value;
         }
+
+        $this->attributes['composition'] = is_array($value) || is_object($value)
+            ? json_encode($value)
+            : $value;
     }
     
     // While saving, if the properties seems to be a string containing valid JSON, parse it into an array
     public function setPropertiesAttribute($value)
     {
         if (is_array($value) && count($value) === 1 && is_string($value[0])) {
-            if(json_decode($value[0], true) !== null) {
-                $this->attributes['properties'] = json_decode($value[0], true);
-            } else {
-                $this->attributes['properties'] = $value;
+            if (json_decode($value[0], true) !== null) {
+                $value = json_decode($value[0], true);
             }
-        } else {
-            $this->attributes['properties'] = $value;
         }
+
+        $this->attributes['properties'] = is_array($value) || is_object($value)
+            ? json_encode($value)
+            : $value;
     }
 
     public function samples()
