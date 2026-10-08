@@ -1,6 +1,9 @@
 <?php
 
+use App\Filament\Resources\Samples\Pages\ListSamples;
 use App\Filament\Resources\Samples\Pages\ViewSample;
+use App\Filament\Resources\SourceMaterials\Pages\ListSourceMaterials;
+use App\Filament\Resources\SourceMaterials\Pages\ViewSourceMaterial;
 use App\Filament\Resources\SourceMaterials\SourceMaterialResource;
 use App\Models\Container;
 use App\Models\ContainerPosition;
@@ -50,6 +53,26 @@ beforeEach(function (): void {
             'orientation' => 'RD',
         ],
     ]);
+});
+
+it('shows the plate number on the material list, material page, and sample list', function (): void {
+    $this->material->update([
+        'properties' => ['plate_number' => 'P48'],
+    ]);
+
+    Livewire::test(ListSourceMaterials::class)
+        ->assertSuccessful()
+        ->assertSee('P48')
+        ->assertSee('Plate number');
+
+    Livewire::test(ViewSourceMaterial::class, ['record' => $this->material->fresh()->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('P48')
+        ->assertSee('Plate number');
+
+    Livewire::test(ListSamples::class)
+        ->assertSuccessful()
+        ->assertSee('P48');
 });
 
 it('shows the sample id, source material, and material properties', function (): void {

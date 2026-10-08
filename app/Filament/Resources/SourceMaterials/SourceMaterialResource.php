@@ -2,56 +2,49 @@
 
 namespace App\Filament\Resources\SourceMaterials;
 
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Grid;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Schemas\Components\Fieldset;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Support\Facades\Auth;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Actions\ReplicateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\SourceMaterials\Pages\CreateSourceMaterial;
+use App\Filament\Resources\SourceMaterials\Pages\EditSourceMaterial;
+use App\Filament\Resources\SourceMaterials\Pages\ListSourceMaterials;
+use App\Filament\Resources\SourceMaterials\Pages\ViewSourceMaterial;
 use App\Filament\Resources\SourceMaterials\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\SourceMaterials\RelationManagers\ProcessingStepsRelationManager;
 use App\Filament\Resources\SourceMaterials\RelationManagers\SamplesRelationManager;
-use App\Filament\Resources\SourceMaterials\Pages\ListSourceMaterials;
-use App\Filament\Resources\SourceMaterials\Pages\CreateSourceMaterial;
-use App\Filament\Resources\SourceMaterials\Pages\EditSourceMaterial;
-use App\Filament\Resources\SourceMaterials\Pages\ViewSourceMaterial;
-use App\Filament\Resources\SourceMaterialResource\Pages;
-use App\Filament\Resources\SourceMaterialResource\RelationManagers;
 use App\Models\SourceMaterial;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Filament\Forms;
-use Filament\Infolists\Components\KeyValueEntry;
+use App\Support\LabValues;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ReplicateAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\CodeEditor;
+use Filament\Forms\Components\CodeEditor\Enums\Language;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\CodeEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\CodeEditor;
-use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Illuminate\Support\Collection;
-use Filament\Infolists;
-use Filament\Infolists\Components\CodeEntry;
-use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Support\Facades\Auth;
 use Phiki\Grammar\Grammar;
 
 class SourceMaterialResource extends Resource
 {
     protected static ?string $model = SourceMaterial::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-inbox-arrow-down';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
     protected static ?int $navigationSort = 1;
 
@@ -74,6 +67,10 @@ class SourceMaterialResource extends Resource
                                     ->columns(2)
                                     ->schema([
                                         TextEntry::make('unique_ref')->label('Reference'),
+                                        TextEntry::make('plate_number')
+                                            ->label('Plate number')
+                                            ->state(fn (SourceMaterial $record): ?string => LabValues::property($record->properties, LabValues::PLATE_NUMBER_KEYS))
+                                            ->placeholder('—'),
                                         TextEntry::make('name')->label('Name'),
                                         TextEntry::make('supplier')->label('Supplier'),
                                         TextEntry::make('supplier_identifier')->label('Supplier ID'),
@@ -92,7 +89,7 @@ class SourceMaterialResource extends Resource
                                         CodeEntry::make('properties')
                                             ->grammar(Grammar::Json)
                                             ->label('')
-                                            ->visible(fn($record) => !empty($record->properties)),
+                                            ->visible(fn ($record) => ! empty($record->properties)),
                                     ]),
                             ]),
 
@@ -132,7 +129,7 @@ class SourceMaterialResource extends Resource
                             ->default('TATA Steel // Arjan Rijkenberg'),
                         TextInput::make('supplier_identifier'),
                         Textarea::make('description')
-                            ->rows(3)
+                            ->rows(3),
                     ]),
                 Section::make('Technical')
                     ->columns(2)
@@ -210,6 +207,12 @@ class SourceMaterialResource extends Resource
                 TextColumn::make('unique_ref')
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('plate_number')
+                    ->label('Plate number')
+                    ->state(fn (SourceMaterial $record): ?string => LabValues::property($record->properties, LabValues::PLATE_NUMBER_KEYS))
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->where('properties->plate_number', 'like', '%'.$search.'%');
+                    }),
                 TextColumn::make('name')
                     ->width(200)
                     ->searchable(),
@@ -233,7 +236,7 @@ class SourceMaterialResource extends Resource
                 Group::make('name')
                     ->collapsible(),
                 Group::make('supplier_identifier')
-                    ->collapsible()
+                    ->collapsible(),
             ])
             ->defaultGroup('grade')
             ->persistFiltersInSession()
@@ -244,7 +247,7 @@ class SourceMaterialResource extends Resource
                         ->distinct()
                         ->orderBy('grade')
                         ->pluck('grade', 'grade')
-                        ->toArray())
+                        ->toArray()),
             ])
             ->recordActions([
                 EditAction::make(),
@@ -261,7 +264,7 @@ class SourceMaterialResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Archive Source Material')
                     ->modalDescription('Are you sure you want to archive this source material? It will be soft deleted and can be restored later.')
-                    ->modalSubmitActionLabel('Archive')
+                    ->modalSubmitActionLabel('Archive'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

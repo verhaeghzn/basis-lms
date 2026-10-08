@@ -6,6 +6,7 @@ use App\Filament\Resources\Samples\Actions\PlaceSampleInContainerAction;
 use App\Filament\Resources\Samples\SampleResource;
 use App\Filament\Resources\SourceMaterials\SourceMaterialResource;
 use App\Models\Sample;
+use App\Support\LabValues;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
@@ -49,17 +50,19 @@ class ViewSample extends ViewRecord
     {
         $sample = $this->sample();
         $material = $sample->sourceMaterial;
-        $full = $sample->fullUniqueRef();
+        $parts = [$sample->fullUniqueRef()];
 
-        if (! $material) {
-            return $full;
+        if ($material?->name && $material->name !== $material->unique_ref) {
+            $parts[] = $material->name;
         }
 
-        if ($material->name && $material->name !== $material->unique_ref) {
-            return $full.' · '.$material->name;
+        $plate = LabValues::property($material?->properties, LabValues::PLATE_NUMBER_KEYS);
+
+        if ($plate) {
+            $parts[] = 'Plate '.$plate;
         }
 
-        return $full;
+        return implode(' · ', $parts);
     }
 
     protected function getHeaderActions(): array

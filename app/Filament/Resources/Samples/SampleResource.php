@@ -8,6 +8,7 @@ use App\Filament\Resources\Samples\Pages\ListSamples;
 use App\Filament\Resources\Samples\Pages\ViewSample;
 use App\Models\Sample;
 use App\Models\SourceMaterial;
+use App\Support\LabValues;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -150,7 +151,7 @@ class SampleResource extends Resource
                     $query->orderByDesc('is_starred');
                 }
 
-                $query->orderBy('unique_ref');
+                $query->with('sourceMaterial')->orderBy('unique_ref');
             })
             ->columns([
                 IconColumn::make('is_starred')
@@ -194,6 +195,9 @@ class SampleResource extends Resource
                     }),
                 TextColumn::make('sourceMaterial.name')
                     ->searchable(),
+                TextColumn::make('plate_number')
+                    ->label('Plate number')
+                    ->state(fn (Sample $record): ?string => LabValues::property($record->sourceMaterial?->properties, LabValues::PLATE_NUMBER_KEYS)),
                 TextColumn::make('width_mm')
                     ->label('Dimensions (mm)')
                     ->formatStateUsing(fn (Sample $record) => $record->width_mm.' x '.$record->height_mm.' x '.$record->thickness_mm),
