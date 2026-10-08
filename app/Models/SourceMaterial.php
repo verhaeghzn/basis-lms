@@ -2,13 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Note;
-use App\Models\Photo;
-use App\Models\ProcessingStep;
-use App\Models\Sample;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -25,6 +20,7 @@ class SourceMaterial extends Model
             \App\Models\TimelineEvent::recordCreated($sourceMaterial);
         });
     }
+
     protected $fillable = [
         'unique_ref',
         'name',
@@ -55,7 +51,7 @@ class SourceMaterial extends Model
     public function setCompositionAttribute($value)
     {
         // if value is array with one string element, convert it to a JSON string
-        if (is_array($value) && count($value) === 1 && is_string($value[0])) {
+        if (is_array($value) && array_is_list($value) && count($value) === 1 && is_string($value[0])) {
             if (json_decode($value[0], true) !== null) {
                 $value = json_decode($value[0], true);
             }
@@ -65,11 +61,11 @@ class SourceMaterial extends Model
             ? json_encode($value)
             : $value;
     }
-    
+
     // While saving, if the properties seems to be a string containing valid JSON, parse it into an array
     public function setPropertiesAttribute($value)
     {
-        if (is_array($value) && count($value) === 1 && is_string($value[0])) {
+        if (is_array($value) && array_is_list($value) && count($value) === 1 && is_string($value[0])) {
             if (json_decode($value[0], true) !== null) {
                 $value = json_decode($value[0], true);
             }

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class Sample extends Model
 {
@@ -138,6 +140,91 @@ class Sample extends Model
     public function containerPosition()
     {
         return $this->hasOne(ContainerPosition::class);
+    }
+
+    /**
+     * Where this plate is stored.
+     *
+     * Container positions are the current record. Older rows may only have
+     * container_id and compartment coordinates on the sample itself.
+     *
+     * @return array{container: Container, x: int|null, y: int|null}|null
+     */
+    public function storageLocation(): ?array
+    {
+        $this->loadMissing('containerPosition.container', 'container');
+
+        $position = $this->containerPosition;
+
+        if ($position?->container) {
+            return [
+                'container' => $position->container,
+                'x' => $position->compartment_x,
+                'y' => $position->compartment_y,
+            ];
+        }
+
+        if ($this->container) {
+            return [
+                'container' => $this->container,
+                'x' => $this->compartment_x,
+                'y' => $this->compartment_y,
+            ];
+        }
+
+        return null;
+    }
+
+    public function placeInContainer(Container $container, int $x, int $y): void
+    {
+        $columns = (int) $container->compartments_x_size;
+        $rows = (int) $container->compartments_y_size;
+
+        if ($x < 1 || $y < 1 || $x > $columns || $y > $rows) {
+            throw ValidationException::withMessages([
+                'position' => 'That slot is outside this container.',
+            ]);
+        }
+
+        $taken = $container->positions()
+            ->where('compartment_x', $x)
+            ->where('compartment_y', $y)
+            ->where(function (Builder $query): void {
+                $query->whereNull('sample_id')
+                    ->orWhere('sample_id', '!=', $this->id);
+            })
+            ->exists();
+
+        if ($taken) {
+            throw ValidationException::withMessages([
+                'position' => 'That slot is already taken.',
+            ]);
+        }
+
+        DB::transaction(function () use ($container, $x, $y): void {
+            ContainerPosition::query()->where('sample_id', $this->id)->delete();
+
+            $container->setPositionSample($x, $y, $this->id);
+
+            $this->forceFill([
+                'container_id' => $container->id,
+                'compartment_x' => $x,
+                'compartment_y' => $y,
+            ])->save();
+        });
+    }
+
+    public function removeFromStorage(): void
+    {
+        DB::transaction(function (): void {
+            ContainerPosition::query()->where('sample_id', $this->id)->delete();
+
+            $this->forceFill([
+                'container_id' => null,
+                'compartment_x' => null,
+                'compartment_y' => null,
+            ])->save();
+        });
     }
 
     public function starredByUsers(): BelongsToMany

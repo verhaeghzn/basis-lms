@@ -216,7 +216,9 @@ class SampleResource extends Resource
                     ->color('info')
                     ->button()
                     ->schema(SampleInfolistSchema::schema(collapsed: false))
-                    ->slideOver(),
+                    ->slideOver()
+                    ->modalSubmitAction(false)
+                    ->modalCancelAction(false),
                 ViewAction::make()
                     ->hiddenLabel()
                     ->color('success')
