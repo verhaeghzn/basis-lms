@@ -52,7 +52,7 @@ class SampleResource extends Resource
                     ->required()
                     ->live(),
                 TextInput::make('unique_ref')
-                    ->label('Plate ID')
+                    ->label('Sample ID')
                     ->required()
                     ->maxLength(255)
                     ->prefix(function (Get $get): string {
@@ -60,7 +60,7 @@ class SampleResource extends Resource
 
                         return $material ? $material->unique_ref.'-' : '';
                     })
-                    ->helperText('Enter only the plate suffix. The material prefix is fixed beside the field.')
+                    ->helperText('Enter only the sample id. The material prefix is fixed beside the field.')
                     ->live(onBlur: true),
                 Forms\Components\Placeholder::make('full_unique_id')
                     ->label('Full unique ID')

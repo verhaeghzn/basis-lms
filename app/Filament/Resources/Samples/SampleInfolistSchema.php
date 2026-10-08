@@ -10,7 +10,6 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Enums\TextSize;
@@ -35,9 +34,9 @@ final class SampleInfolistSchema
                         ->columnSpanFull()
                         ->visible(fn (Sample $record): bool => $record->latestPhoto !== null),
                     TextEntry::make('unique_ref')
-                        ->label('Plate number')
+                        ->label('Sample ID')
                         ->copyable()
-                        ->copyMessage('Plate number copied')
+                        ->copyMessage('Sample ID copied')
                         ->size(TextSize::Large)
                         ->weight('bold'),
                     TextEntry::make('full_unique_ref')
@@ -67,14 +66,29 @@ final class SampleInfolistSchema
                 ->schema([
                     TextEntry::make('source_material_name')
                         ->label('Material')
-                        ->state(fn (Sample $record): string => $record->sourceMaterial
-                            ? trim($record->sourceMaterial->name.' · '.$record->sourceMaterial->unique_ref, ' ·')
-                            : 'Not linked')
+                        ->state(function (Sample $record): string {
+                            $material = $record->sourceMaterial;
+
+                            if (! $material) {
+                                return 'Not linked';
+                            }
+
+                            if ($material->name && $material->unique_ref && $material->name !== $material->unique_ref) {
+                                return $material->name.' · '.$material->unique_ref;
+                            }
+
+                            return $material->name ?: (string) $material->unique_ref;
+                        })
                         ->url(fn (Sample $record): ?string => $record->source_material_id
                             ? SourceMaterialResource::getUrl('view', ['record' => $record->source_material_id])
                             : null)
                         ->color('primary')
                         ->columnSpanFull(),
+                    TextEntry::make('material_plate_number')
+                        ->label('Plate number')
+                        ->state(fn (Sample $record): ?string => LabValues::property($record->sourceMaterial?->properties, LabValues::PLATE_NUMBER_KEYS))
+                        ->visible(fn (Sample $record): bool => filled(LabValues::property($record->sourceMaterial?->properties, LabValues::PLATE_NUMBER_KEYS)))
+                        ->copyable(),
                     TextEntry::make('sourceMaterial.grade')
                         ->label('Grade')
                         ->placeholder('Not recorded'),
@@ -95,15 +109,29 @@ final class SampleInfolistSchema
                             )
                             : null)
                         ->placeholder('Not recorded'),
-                    KeyValueEntry::make('material_properties')
+                    TextEntry::make('material_properties')
                         ->label('Properties')
-                        ->state(fn (Sample $record): array => LabValues::pairs($record->sourceMaterial?->properties))
-                        ->visible(fn (Sample $record): bool => LabValues::pairs($record->sourceMaterial?->properties) !== [])
+                        ->html()
+                        ->state(function (Sample $record): ?string {
+                            $blocks = LabValues::blocks($record->sourceMaterial?->properties, LabValues::PLATE_NUMBER_KEYS);
+
+                            return $blocks === []
+                                ? null
+                                : view('filament.resources.samples.partials.value-blocks', ['blocks' => $blocks])->render();
+                        })
+                        ->visible(fn (Sample $record): bool => LabValues::blocks($record->sourceMaterial?->properties, LabValues::PLATE_NUMBER_KEYS) !== [])
                         ->columnSpanFull(),
-                    KeyValueEntry::make('material_composition')
+                    TextEntry::make('material_composition')
                         ->label('Composition')
-                        ->state(fn (Sample $record): array => LabValues::pairs($record->sourceMaterial?->composition))
-                        ->visible(fn (Sample $record): bool => LabValues::pairs($record->sourceMaterial?->composition) !== [])
+                        ->html()
+                        ->state(function (Sample $record): ?string {
+                            $entries = LabValues::entries($record->sourceMaterial?->composition);
+
+                            return $entries === []
+                                ? null
+                                : view('filament.resources.samples.partials.composition', ['entries' => $entries])->render();
+                        })
+                        ->visible(fn (Sample $record): bool => LabValues::entries($record->sourceMaterial?->composition) !== [])
                         ->columnSpanFull(),
                 ]),
 
@@ -175,9 +203,17 @@ final class SampleInfolistSchema
                 ->columnSpan(1)
                 ->collapsed($collapsed)
                 ->schema([
-                    KeyValueEntry::make('properties')
+                    TextEntry::make('properties')
                         ->hiddenLabel()
-                        ->visible(fn (Sample $record): bool => filled($record->properties)),
+                        ->html()
+                        ->state(function (Sample $record): ?string {
+                            $blocks = LabValues::blocks($record->properties);
+
+                            return $blocks === []
+                                ? null
+                                : view('filament.resources.samples.partials.value-blocks', ['blocks' => $blocks])->render();
+                        })
+                        ->visible(fn (Sample $record): bool => LabValues::blocks($record->properties) !== []),
                     TextEntry::make('properties_empty')
                         ->hiddenLabel()
                         ->state('No properties recorded on this plate.')

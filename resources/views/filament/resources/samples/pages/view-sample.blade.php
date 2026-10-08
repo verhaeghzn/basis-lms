@@ -10,9 +10,13 @@
     $location = $sample->storageLocation();
     $photos = $sample->photos;
     $latestPhoto = $photos->first();
-    $materialProperties = LabValues::pairs($material?->properties);
-    $materialComposition = LabValues::pairs($material?->composition);
-    $plateProperties = LabValues::pairs($sample->properties);
+    $plateNumber = LabValues::property($material?->properties, LabValues::PLATE_NUMBER_KEYS);
+    $materialBlocks = LabValues::blocks($material?->properties, LabValues::PLATE_NUMBER_KEYS);
+    $composition = LabValues::entries($material?->composition);
+    usort($composition, fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));
+    $plateBlocks = LabValues::blocks($sample->properties);
+    $materialTitle = $material?->name ?: $material?->unique_ref;
+    $materialRefIsTitle = $material && $material->unique_ref === $materialTitle;
     $plateSize = LabValues::millimetres($sample->width_mm, $sample->height_mm, $sample->thickness_mm);
     $materialSize = $material
         ? LabValues::millimetres($material->width_mm, $material->height_mm, $material->thickness_mm)
@@ -44,103 +48,45 @@
 
 <x-filament-panels::page>
     <div class="sample-dossier">
-        <section class="sample-hero">
-            <div class="sample-photo">
-                @if ($latestPhoto)
-                    <img src="{{ $latestPhoto->url() }}" alt="Photo of plate {{ $sample->unique_ref }}">
-                    <button
-                        type="button"
-                        class="sample-photo__add"
-                        wire:click="mountAction('addPhoto')"
-                    >
-                        Add photo
-                    </button>
-                @else
-                    <div class="sample-photo__empty">
-                        <svg class="sample-photo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a48 48 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
-                        </svg>
-                        <p>No photo of this plate yet.</p>
-                        <button type="button" class="sample-text-button" wire:click="mountAction('addPhoto')">
-                            Add photo
-                        </button>
-                    </div>
+        @if ($latestPhoto)
+            <section class="sample-photo-band">
+                <img src="{{ $latestPhoto->url() }}" alt="Photo of plate {{ $sample->unique_ref }}">
+                <button
+                    type="button"
+                    class="sample-photo__add"
+                    wire:click="mountAction('addPhoto')"
+                >
+                    Add photo
+                </button>
+            </section>
+        @endif
+
+        @if (filled($sample->description) || $plateSize)
+            <section class="sample-card sample-card--quiet">
+                @if ($plateSize)
+                    <p class="sample-meta"><a class="sample-link" href="{{ $editUrl }}">{{ $plateSize }}</a></p>
                 @endif
-            </div>
-
-            <div class="sample-hero__body">
-                <div>
-                    <p class="sample-kicker">Plate number</p>
-                    <h2 class="sample-plate">{{ $sample->unique_ref }}</h2>
-                </div>
-
-                <div class="sample-id-row">
-                    <div>
-                        <p class="sample-kicker">Full ID</p>
-                        <p class="sample-full-id">{{ $sample->fullUniqueRef() }}</p>
-                    </div>
-                    <button
-                        type="button"
-                        class="sample-copy"
-                        x-data="{ copied: false }"
-                        x-on:click="navigator.clipboard.writeText(@js($sample->fullUniqueRef())); copied = true; setTimeout(() => copied = false, 1200)"
-                    >
-                        <span x-show="! copied">Copy</span>
-                        <span x-show="copied" x-cloak>Copied</span>
-                    </button>
-                </div>
-
-                <div class="sample-chips">
-                    @if ($material && $materialUrl)
-                        <a class="sample-chip sample-chip--ok" href="{{ $materialUrl }}">
-                            {{ $material->unique_ref }}
-                            @if ($material->name)
-                                · {{ $material->name }}
-                            @endif
-                        </a>
-                    @endif
-
-                    @if ($material?->grade)
-                        <span class="sample-chip">Grade {{ $material->grade }}</span>
-                    @endif
-
-                    @if ($material?->supplier_identifier)
-                        <span class="sample-chip">Supplier ID {{ $material->supplier_identifier }}</span>
-                    @endif
-
-                    @if ($plateSize)
-                        <a class="sample-chip" href="{{ $editUrl }}">{{ $plateSize }}</a>
-                    @else
-                        <a class="sample-chip" href="{{ $editUrl }}">Size not recorded</a>
-                    @endif
-
-                    @if ($location && $containerUrl)
-                        <a class="sample-chip sample-chip--ok" href="{{ $containerUrl }}">
-                            {{ $location['container']->name }}
-                            @if ($slotLabel)
-                                · {{ $slotLabel }}
-                            @endif
-                        </a>
-                    @else
-                        <button type="button" class="sample-chip sample-chip--alert" wire:click="mountAction('placeInContainer')">
-                            Not stored — add to a container
-                        </button>
-                    @endif
-                </div>
-
                 @if (filled($sample->description))
                     <div class="sample-prose">
                         {!! Str::markdown($sample->description) !!}
                     </div>
                 @endif
+            </section>
+        @endif
 
-                <p class="sample-meta">
-                    Updated {{ optional($sample->updated_at)->diffForHumans() }}
-                    · Created {{ optional($sample->created_at)->format('j M Y') }}
-                </p>
-            </div>
-        </section>
+        <p class="sample-meta">
+            <button
+                type="button"
+                class="sample-copy"
+                x-data="{ copied: false }"
+                x-on:click="navigator.clipboard.writeText(@js($sample->fullUniqueRef())); copied = true; setTimeout(() => copied = false, 1200)"
+            >
+                <span x-show="! copied">Copy full ID</span>
+                <span x-show="copied" x-cloak>Copied</span>
+            </button>
+            · Updated {{ optional($sample->updated_at)->diffForHumans() }}
+            · Created {{ optional($sample->created_at)->format('j M Y') }}
+        </p>
 
         @if ($photos->isNotEmpty())
             <section class="sample-card">
@@ -200,8 +146,8 @@
                         </button>
                     </div>
                 @else
-                    <div class="sample-storage-empty">
-                        <p>This plate is not in a container yet.</p>
+                    <p class="sample-status">This plate is not in a container yet.</p>
+                    <div class="sample-actions">
                         <x-filament::button size="sm" icon="heroicon-o-plus" wire:click="mountAction('placeInContainer')">
                             Add to container
                         </x-filament::button>
@@ -218,43 +164,34 @@
                 </div>
 
                 @if ($material)
-                    <a class="sample-material-name" href="{{ $materialUrl }}">{{ $material->name ?: $material->unique_ref }}</a>
-                    <p class="sample-meta">{{ $material->unique_ref }}</p>
+                    <a class="sample-material-name" href="{{ $materialUrl }}">{{ $materialTitle }}</a>
+                    @unless ($materialRefIsTitle)
+                        <p class="sample-meta">{{ $material->unique_ref }}</p>
+                    @endunless
 
-                    <dl class="sample-dl">
-                        <dt>Grade</dt>
-                        <dd>{{ $material->grade ?: 'Not recorded' }}</dd>
-                        <dt>Supplier</dt>
-                        <dd>{{ $material->supplier ?: 'Not recorded' }}</dd>
-                        <dt>Supplier ID</dt>
-                        <dd>{{ $material->supplier_identifier ?: 'Not recorded' }}</dd>
-                        <dt>Sheet size</dt>
-                        <dd>{{ $materialSize ?: 'Not recorded' }}</dd>
-                    </dl>
-
-                    <h3>Properties</h3>
-                    @if ($materialProperties !== [])
-                        <div class="sample-scroll">
-                            <dl class="sample-dl">
-                                @foreach ($materialProperties as $label => $value)
-                                    <dt>{{ $label }}</dt>
-                                    <dd>{{ $value }}</dd>
-                                @endforeach
-                            </dl>
-                        </div>
-                    @else
-                        <p class="sample-meta">No properties recorded on this material.</p>
-                    @endif
-
-                    <h3>Composition</h3>
-                    @if ($materialComposition !== [])
-                        <div class="sample-pills">
-                            @foreach ($materialComposition as $label => $value)
-                                <span class="sample-pill">{{ $label }} {{ $value }}</span>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="sample-meta">No composition recorded.</p>
+                    @if ($plateNumber || $material->grade || $material->supplier || $material->supplier_identifier || $materialSize)
+                        <dl class="sample-dl">
+                            @if ($plateNumber)
+                                <dt>Plate number</dt>
+                                <dd>{{ $plateNumber }}</dd>
+                            @endif
+                            @if ($material->grade)
+                                <dt>Grade</dt>
+                                <dd>{{ $material->grade }}</dd>
+                            @endif
+                            @if ($material->supplier)
+                                <dt>Supplier</dt>
+                                <dd>{{ $material->supplier }}</dd>
+                            @endif
+                            @if ($material->supplier_identifier)
+                                <dt>Supplier ID</dt>
+                                <dd>{{ $material->supplier_identifier }}</dd>
+                            @endif
+                            @if ($materialSize)
+                                <dt>Sheet size</dt>
+                                <dd>{{ $materialSize }}</dd>
+                            @endif
+                        </dl>
                     @endif
 
                     @if ($siblingTotal <= 1)
@@ -266,18 +203,31 @@
             </section>
         </div>
 
-        @if ($plateProperties !== [])
+        @if ($composition !== [])
+            <section class="sample-card">
+                <div class="sample-card__head">
+                    <h2>Composition</h2>
+                </div>
+                @include('filament.resources.samples.partials.composition', ['entries' => $composition])
+            </section>
+        @endif
+
+        @if ($materialBlocks !== [])
+            <section class="sample-card">
+                <div class="sample-card__head">
+                    <h2>Material properties</h2>
+                </div>
+                @include('filament.resources.samples.partials.value-blocks', ['blocks' => $materialBlocks])
+            </section>
+        @endif
+
+        @if ($plateBlocks !== [])
             <section class="sample-card">
                 <div class="sample-card__head">
                     <h2>Plate properties</h2>
                     <a class="sample-link" href="{{ $editUrl }}">Edit</a>
                 </div>
-                <dl class="sample-dl">
-                    @foreach ($plateProperties as $label => $value)
-                        <dt>{{ $label }}</dt>
-                        <dd>{{ $value }}</dd>
-                    @endforeach
-                </dl>
+                @include('filament.resources.samples.partials.value-blocks', ['blocks' => $plateBlocks])
             </section>
         @endif
 

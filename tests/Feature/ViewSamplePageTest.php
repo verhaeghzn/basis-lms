@@ -52,7 +52,7 @@ beforeEach(function (): void {
     ]);
 });
 
-it('shows the plate number, source material, and material properties', function (): void {
+it('shows the sample id, source material, and material properties', function (): void {
     $sibling = Sample::query()->create([
         'unique_ref' => 'DOGB-02',
         'source_material_id' => $this->material->id,
@@ -60,7 +60,8 @@ it('shows the plate number, source material, and material properties', function 
 
     Livewire::test(ViewSample::class, ['record' => $this->sample->getRouteKey()])
         ->assertSuccessful()
-        ->assertSee('Plate number')
+        ->assertSee('Sample ID')
+        ->assertDontSee('Plate number')
         ->assertSee('DOGB-01')
         ->assertSee('HR-CP800-BASE-DOGB-01')
         ->assertSee('CP800 base sheet')
@@ -68,12 +69,65 @@ it('shows the plate number, source material, and material properties', function 
         ->assertSee('yield strength')
         ->assertSee('820 MPa')
         ->assertSee('Fe')
-        ->assertSee('Not stored')
+        ->assertSee('not in a container yet')
         ->assertSee('DOGB-02')
         ->assertSee('orientation')
         ->assertSeeHtml(SourceMaterialResource::getUrl('view', ['record' => $this->material]));
 
     expect($sibling->source_material_id)->toBe($this->material->id);
+});
+
+it('renders real material notes, tensile data, and a thickness-only size', function (): void {
+    $this->material->update([
+        'name' => 'HR-CP800-BASE',
+        'grade' => 'HR CP800',
+        'supplier' => 'TATA Steel // Arjan Rijkenberg',
+        'supplier_identifier' => '25-164-07',
+        'width_mm' => null,
+        'height_mm' => null,
+        'thickness_mm' => 3.48,
+        'properties' => [
+            'Plate Nr.' => 'TATA-PLATE-17',
+            'notes' => 'Ti-rich grades show Rp/Rm drop with tramp residual.',
+            'remark' => 'Corresponds with production steel C in Table 11',
+            'series' => 'laboratory_replicating_production_and_eaf_dri',
+            'tensile' => [
+                'A80_L' => [
+                    'Y' => 0.65,
+                    't_mm' => 3.48,
+                    'Ae_pct' => null,
+                ],
+            ],
+        ],
+        'composition' => [
+            'B' => 0.0001,
+            'C' => 0.004,
+            'N' => 0.0049,
+        ],
+    ]);
+
+    $this->sample->update([
+        'width_mm' => null,
+        'height_mm' => null,
+        'thickness_mm' => null,
+    ]);
+
+    Livewire::test(ViewSample::class, ['record' => $this->sample->fresh()->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('Sample ID')
+        ->assertSee('Plate number')
+        ->assertSee('TATA-PLATE-17')
+        ->assertSee('3.48 mm thick')
+        ->assertSee('Ti-rich grades show Rp/Rm drop')
+        ->assertSee('A80 L')
+        ->assertSee('0.65')
+        ->assertSee('laboratory replicating production and eaf dri')
+        ->assertDontSee('laboratory_replicating')
+        ->assertSee('0.0001')
+        ->assertDontSee('{"A80_L"')
+        ->assertDontSee('— × —')
+        ->assertDontSee('HR-CP800-BASE · HR-CP800-BASE')
+        ->assertDontSee('Size not recorded');
 });
 
 it('stores a plate in a new container from the sample page', function (): void {

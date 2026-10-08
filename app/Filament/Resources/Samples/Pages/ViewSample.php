@@ -13,8 +13,10 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 
 class ViewSample extends ViewRecord
 {
@@ -36,15 +38,28 @@ class ViewSample extends ViewRecord
         return $this->sample()->fullUniqueRef();
     }
 
+    public function getHeading(): string|Htmlable|null
+    {
+        $sampleId = e($this->sample()->unique_ref);
+
+        return new HtmlString('<span class="sample-kicker">Sample ID</span><span class="sample-plate">'.$sampleId.'</span>');
+    }
+
     public function getSubheading(): ?string
     {
-        $material = $this->sample()->sourceMaterial;
+        $sample = $this->sample();
+        $material = $sample->sourceMaterial;
+        $full = $sample->fullUniqueRef();
 
         if (! $material) {
-            return 'No source material linked';
+            return $full;
         }
 
-        return $material->name;
+        if ($material->name && $material->name !== $material->unique_ref) {
+            return $full.' · '.$material->name;
+        }
+
+        return $full;
     }
 
     protected function getHeaderActions(): array

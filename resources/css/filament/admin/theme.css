@@ -213,6 +213,28 @@
     }
 }
 
+/* ---- Sample page heading ---- */
+
+.fi-resource-samples .fi-header-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+}
+
+.fi-resource-samples .fi-header-heading .sample-kicker {
+    color: #04688f;
+}
+
+.fi-resource-samples .fi-header-heading .sample-plate {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+}
+
+.fi-resource-samples .fi-header-subheading {
+    color: #3d5563;
+    font-weight: 650;
+}
+
 /* ---- Sample dossier ---- */
 
 .sample-dossier {
@@ -237,6 +259,10 @@
     border-top: 3px solid var(--sample-accent);
     border-radius: 1rem;
     overflow: hidden;
+}
+
+.sample-hero--plain {
+    grid-template-columns: 1fr;
 }
 
 .sample-photo {
@@ -269,6 +295,20 @@
     width: 2.25rem;
     height: 2.25rem;
     color: var(--sample-accent);
+}
+
+.sample-photo-band {
+    position: relative;
+    height: 220px;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #e7eef2;
+}
+
+.sample-photo-band img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .sample-photo__add {
@@ -435,6 +475,16 @@ button.sample-chip:hover {
     letter-spacing: -0.02em;
 }
 
+.sample-card--quiet {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.sample-card__head + .sample-block > h3 {
+    margin-top: 0;
+}
+
 .sample-card h3 {
     margin: 0.95rem 0 0.4rem;
     font-size: 0.72rem;
@@ -471,9 +521,10 @@ button.sample-chip:hover {
 
 .sample-dl {
     display: grid;
-    grid-template-columns: minmax(6.5rem, 34%) minmax(0, 1fr);
-    gap: 0.35rem 0.75rem;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: 0.4rem 0.85rem;
     margin: 0.75rem 0 0;
+    max-width: 46rem;
     font-size: 0.92rem;
 }
 
@@ -492,6 +543,73 @@ button.sample-chip:hover {
     overflow: auto;
 }
 
+.sample-block + .sample-block {
+    margin-top: 1.1rem;
+}
+
+.sample-prose-copy {
+    margin: 0.25rem 0 0;
+    max-width: 46rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.sample-table-wrap {
+    overflow-x: auto;
+}
+
+.sample-table {
+    width: auto;
+    min-width: min(100%, 32rem);
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.sample-table th,
+.sample-table td {
+    padding: 0.45rem 0.9rem 0.45rem 0;
+    border-bottom: 1px solid var(--sample-line);
+    text-align: left;
+    vertical-align: top;
+    font-variant-numeric: tabular-nums;
+}
+
+.sample-table thead th {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sample-steel);
+}
+
+.sample-table tbody th {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sample-muted {
+    color: var(--sample-steel);
+}
+
+.sample-composition {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.15rem 1.25rem;
+}
+
+.sample-composition div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--sample-line);
+    padding: 0.35rem 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.sample-composition div span:first-child {
+    font-weight: 750;
+}
+
 .sample-pills {
     display: flex;
     flex-wrap: wrap;
@@ -505,6 +623,10 @@ button.sample-chip:hover {
     font-size: 0.78rem;
     font-weight: 700;
     padding: 0.18rem 0.55rem;
+}
+
+.sample-status {
+    margin: 0;
 }
 
 .sample-storage-empty {

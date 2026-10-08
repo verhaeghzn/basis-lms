@@ -2,21 +2,16 @@
 
 namespace App\Filament\Resources\SourceMaterials\RelationManagers;
 
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\CreateAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use App\Filament\Resources\Samples\SampleResource;
 use App\Models\Sample;
-use Filament\Actions\ViewAction;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SamplesRelationManager extends RelationManager
 {
@@ -27,13 +22,12 @@ class SamplesRelationManager extends RelationManager
         return false;
     }
 
-
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 TextInput::make('unique_ref')
-                    ->label('Plate ID')
+                    ->label('Sample ID')
                     ->required()
                     ->maxLength(255)
                     ->prefix(fn (): string => ($this->getOwnerRecord()->unique_ref ?? '').'-')
@@ -61,7 +55,7 @@ class SamplesRelationManager extends RelationManager
                 CreateAction::make(),
             ])
             ->recordActions([
-                
+
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
